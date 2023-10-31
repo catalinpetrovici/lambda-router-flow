@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   build:
@@ -17,3 +17,4 @@ jobs:
           node-version: '20.9.0'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
+      - run: npm run test
