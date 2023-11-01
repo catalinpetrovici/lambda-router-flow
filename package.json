@@ -1,6 +1,6 @@
 {
   "name": "lambda-router-flow",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/catalinpetrovici24/easy-aws-lambda.git"
+    "url": "git+https://github.com/catalinpetrovici/lambda-router-flow.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Catalin Cristian Petrovici",
   "bugs": {
-    "url": "https://github.com/catalinpetrovici24/easy-aws-lambda/issues"
+    "url": "https://github.com/catalinpetrovici/lambda-router-flow/issues"
   },
-  "homepage": "https://github.com/catalinpetrovici24/easy-aws-lambda#readme",
+  "homepage": "https://github.com/catalinpetrovici/lambda-router-flow#readme",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.125",
     "@types/jest": "^29.5.7",
