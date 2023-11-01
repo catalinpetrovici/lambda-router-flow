@@ -13,7 +13,7 @@ export default class Router {
     debug: false,
   };
 
-  constructor(event: object, headers: object, options: object) {
+  constructor(event: object, headers: object, options?: object) {
     this.request = event;
     this.response = new Response(headers);
 
@@ -25,14 +25,20 @@ export default class Router {
     }
   }
 
-  _check(resource: string, cbs: { (param: string): void }[]) {
+  _check(
+    resource: string,
+    cbs: { (request: any, response: IResponse): void }[]
+  ) {
     if (!resource || typeof resource !== 'string')
       throw new Error('Router GET: No resource provided');
     if (!Array.isArray(cbs) || !cbs?.length)
       throw new Error('Router GET: No callbacks provided');
   }
 
-  get(resource: string, ...cbs: { (param: string): void }[]) {
+  get(
+    resource: string,
+    ...cbs: { (request: any, response: IResponse): void }[]
+  ) {
     console.log('Router GET', resource, cbs);
     this._check(resource, cbs);
 
@@ -105,7 +111,7 @@ export default class Router {
     }
   }
 
-  error(error: Error | BaseError, options: {}) {
+  error(error: Error | BaseError, options?: {}) {
     if (!errorHandlerInstance.isTrustedError(error)) {
       console.log('InternalServerError', JSON.stringify(error));
       const responseError: { [key: string]: any } = {

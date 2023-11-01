@@ -5,7 +5,13 @@ export interface IResponse {
   status: (statusCode: IStatusCodes) => this;
   cookie: (name: string, value: string, options: { maxAge: number }) => this;
   json: (response: object | string) => this;
-  send: () => object;
+  send: () => {
+    statusCode: number;
+    body: string;
+    headers: {
+      [key: string]: any;
+    };
+  };
 }
 
 export default class Response implements IResponse {
@@ -72,7 +78,13 @@ export default class Response implements IResponse {
     return this;
   }
 
-  send() {
+  send(): {
+    statusCode: number;
+    body: string;
+    headers: {
+      [key: string]: any;
+    };
+  } {
     return {
       statusCode: this.statusCode,
       body: JSON.stringify(this.response),
