@@ -1,6 +1,6 @@
 {
   "name": "easy-aws-lambda",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/catalinpetrovici24/easy-aws-lambda#readme",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.125",
     "@types/jest": "^29.5.7",
     "@types/node": "^20.8.10",
     "jest": "^29.7.0",
