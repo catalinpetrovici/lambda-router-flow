@@ -1,6 +1,7 @@
 import { Response, IResponse } from '../Response';
 import { StatusCodes } from '../StatusCodes';
-import { errorHandlerInstance, BadRequest, BaseError } from '../Errors';
+import { errorHandlerInstance, InternalServerError, NotFound } from '../Errors';
+import BaseError from '../Errors/BaseError';
 
 export default class Router {
   request: {
@@ -30,9 +31,9 @@ export default class Router {
     cbs: { (request: any, response: IResponse): void }[]
   ) {
     if (!resource || typeof resource !== 'string')
-      throw new Error('Router GET: No resource provided');
+      throw new InternalServerError('Router GET: No resource provided');
     if (!Array.isArray(cbs) || !cbs?.length)
-      throw new Error('Router GET: No callbacks provided');
+      throw new InternalServerError('Router GET: No callbacks provided');
   }
 
   get(
@@ -46,7 +47,10 @@ export default class Router {
     return this;
   }
 
-  async post(resource: string, ...cbs: { (param: string): void }[]) {
+  async post(
+    resource: string,
+    ...cbs: { (request: any, response: IResponse): void }[]
+  ) {
     console.log('Router POST', resource, cbs);
     this._check(resource, cbs);
 
@@ -54,7 +58,10 @@ export default class Router {
     return this;
   }
 
-  async patch(resource: string, ...cbs: { (param: string): void }[]) {
+  async patch(
+    resource: string,
+    ...cbs: { (request: any, response: IResponse): void }[]
+  ) {
     console.log('Router PATCH', resource, cbs);
     this._check(resource, cbs);
 
@@ -62,7 +69,10 @@ export default class Router {
     return this;
   }
 
-  async delete(resource: string, ...cbs: { (param: string): void }[]) {
+  async delete(
+    resource: string,
+    ...cbs: { (request: any, response: IResponse): void }[]
+  ) {
     console.log('Router DELETE', resource, cbs);
     this._check(resource, cbs);
 
@@ -72,7 +82,7 @@ export default class Router {
 
   async handle() {
     if (!this.queue.length)
-      throw new BadRequest('Invalid HTTP method or resource', 'Router');
+      throw new NotFound('Requested resource is not available', 'Router');
 
     console.log('handle queue', this.queue);
 
@@ -87,7 +97,7 @@ export default class Router {
     });
 
     if (!session?.length)
-      throw new BadRequest('Invalid HTTP method or resource', 'Router');
+      throw new NotFound('Requested resource is not available', 'Router');
 
     if (session.length > 1)
       throw new Error('Multiple requests found. Please check the Router setup');
@@ -101,7 +111,7 @@ export default class Router {
         const response = await callback(this.request, this.response);
 
         if (!response || !(response instanceof Response))
-          throw new Error(
+          throw new InternalServerError(
             `Function ${callback?.name} don't return a valid response`
           );
 
