@@ -1,7 +1,7 @@
 import { StatusCodes, type IStatusCodes } from '../StatusCodes';
 import BaseError from './BaseError';
 
-export default class APIError extends BaseError {
+export default class ServiceError extends BaseError {
   constructor(
     message: string,
     methodName: string,

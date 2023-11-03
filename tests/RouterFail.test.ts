@@ -6,7 +6,7 @@ import {
   StatusCodes,
   Unauthorized,
 } from '../src/index';
-import { APIError, BadRequest } from '../src/index';
+import { ServiceError, BadRequest } from '../src/index';
 
 describe('Router', () => {
   it('should return NotFound status code and descriptive message when no route provided', async () => {

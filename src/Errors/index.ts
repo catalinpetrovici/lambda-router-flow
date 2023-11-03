@@ -1,4 +1,4 @@
-import APIError from './APIError';
+import ServiceError from './ServiceError';
 import BadRequest from './BadRequest';
 import Forbidden from './Forbidden';
 import NotFound from './NotFound';
@@ -10,7 +10,7 @@ import InternalServerError from './InternalServerError';
 import { errorHandlerInstance } from './ErrorHandler';
 
 export {
-  APIError,
+  ServiceError,
   BadRequest,
   Forbidden,
   NotFound,

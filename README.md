@@ -5,23 +5,22 @@ LambdaRouterFlow is a very simple router for AWS Lambda.
 ### Example Lambda Application
 
 ```javascript
-import Handlers from './handlers/index.mjs';
+import Router from 'lambda-router-flow';
+import Service from './services/index.mjs';
 import Check from './middlewares/index.mjs';
-import Router from './router/Router.mjs';
 import { headers } from './CORS-settings.mjs';
 
 export const handler = async (event) => {
-  const debug =
-    event.headers.DEBUG === 'true' || event?.requestContext?.stage === 'dev';
+  const debug = event?.requestContext?.stage === 'dev';
   const router = new Router(event, headers, { debug });
 
   try {
-    router.get('/roles', Handlers.getAllRoles);
-    router.post('/roles', Check.permissions, Handlers.addRole);
+    router.get('/roles', Service.getAllRoles);
+    router.post('/roles', Check.permissions, Service.addRole);
 
-    router.get('/roles/{roleId+}', Handlers.getRole);
-    router.patch('/roles/{roleId+}', Check.permissions, Handlers.updateRole);
-    router.delete('/roles/{roleId+}', Check.permissions, Handlers.deleteRole);
+    router.get('/roles/{roleId+}', Service.getRole);
+    router.patch('/roles/{roleId+}', Check.permissions, Service.updateRole);
+    router.delete('/roles/{roleId+}', Check.permissions, Service.deleteRole);
 
     return await router.handle();
   } catch (error) {
@@ -35,7 +34,7 @@ export const handler = async (event) => {
 Add LambdaRouterFlow to your AWS Lambda app:
 
 ```shell
-npm add lambda-router-flow
+npm install lambda-router-flow
 ```
 
 ## Routes Definition
@@ -50,7 +49,55 @@ LambdaRouterFlow have middlewares.
 The only way to stop router middleware chain is to throw an error.
 
 ```javascript
-router.get('/roles', Validate.body, Check.permissions, Handlers.getAllRoles);
+router.get('/roles', Validate.body, Check.permissions, Service.getAllRoles);
+
+export async function body(request, response) {
+  const result = userSchema.safeParse(request.body);
+  if (!result.success)
+    throw new BadRequest(`Object doesn't match schema`, 'body');
+}
+
+export async function permissions(request, response) {
+  // check permissions
+  if (!isAuthorized) throw new Unauthorized('Unauthorized', 'permissions');
+}
+```
+
+## Service
+
+```javascript
+import { ServiceError, StatusCodes } from 'lambda-router-flow';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+
+export async function getAllRoles(request, response) {
+  const client = new DynamoDBClient({});
+  const docClient = DynamoDBDocumentClient.from(client);
+
+  try {
+    const command = new ScanCommand({
+      TableName: 'UserRoles',
+    });
+
+    const UserRolesRecords = await docClient.send(command);
+    const Items = UserRolesRecords.Items;
+
+    return response.status(StatusCodes.OK).json({
+      length: Items.length,
+      data: Items,
+    });
+  } catch (error) {
+    // format @aws-sdk errors
+    const DebugErrorMessage = {};
+
+    throw new ServiceError(
+      error.message,
+      'getAllRoles',
+      DebugErrorMessage,
+      error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
 ```
 
 ## Error handling
@@ -65,4 +112,14 @@ LambdaRouterFlow have it's own throw Errors
  * @params  {object} DebugErrorMessage  - Custom object error message
  */
 throw new BadRequest('Invalid HTTP method or resource', 'Router');
+
+throw new Forbidden('---', 'Router');
+throw new Unauthorized('---', 'Router');
+throw new TooManyRequests('---', 'Router');
+throw new InternalServerError('---', 'Router');
+throw new NotFound('---', 'Router');
+throw new NotImplemented('---', 'Router');
+throw new ServiceUnavailable('---', 'Router');
+
+throw new ServiceError('---', 'Router', StatusCodes.INTERNAL_SERVER_ERROR);
 ```
