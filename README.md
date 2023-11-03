@@ -5,9 +5,9 @@ LambdaRouterFlow is a very simple router for AWS Lambda.
 ### Example Lambda Application
 
 ```javascript
-import Handlers from './handlers/index.mjs';
+import Router from 'lambda-router-flow';
+import Service from './services/index.mjs';
 import Check from './middlewares/index.mjs';
-import Router from './router/Router.mjs';
 import { headers } from './CORS-settings.mjs';
 
 export const handler = async (event) => {
@@ -16,12 +16,12 @@ export const handler = async (event) => {
   const router = new Router(event, headers, { debug });
 
   try {
-    router.get('/roles', Handlers.getAllRoles);
-    router.post('/roles', Check.permissions, Handlers.addRole);
+    router.get('/roles', Service.getAllRoles);
+    router.post('/roles', Check.permissions, Service.addRole);
 
-    router.get('/roles/{roleId+}', Handlers.getRole);
-    router.patch('/roles/{roleId+}', Check.permissions, Handlers.updateRole);
-    router.delete('/roles/{roleId+}', Check.permissions, Handlers.deleteRole);
+    router.get('/roles/{roleId+}', Service.getRole);
+    router.patch('/roles/{roleId+}', Check.permissions, Service.updateRole);
+    router.delete('/roles/{roleId+}', Check.permissions, Service.deleteRole);
 
     return await router.handle();
   } catch (error) {
@@ -35,7 +35,7 @@ export const handler = async (event) => {
 Add LambdaRouterFlow to your AWS Lambda app:
 
 ```shell
-npm add lambda-router-flow
+npm install lambda-router-flow
 ```
 
 ## Routes Definition
