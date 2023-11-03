@@ -1,93 +1,89 @@
+import { type TEvent, TQueue, TResponseCallbacks } from './RouterTypes';
+import { HttpMethod, TOptions, THttpMethod } from './RouterTypes';
 import { Response, IResponse } from '../Response';
 import { StatusCodes } from '../StatusCodes';
 import { errorHandlerInstance, InternalServerError, NotFound } from '../Errors';
 import BaseError from '../Errors/BaseError';
 
 export default class Router {
-  request: {
-    httpMethod?: string;
-    resource?: string;
-  };
-  response: IResponse;
-  queue: string[] | any = [];
-  options: { [key: string]: number | string | boolean } = {
+  public request: TEvent = {};
+  public response: IResponse;
+  private _queue: TQueue[] = [];
+  private _options: TOptions = {
     debug: false,
   };
 
-  constructor(event: object, headers: object, options?: object) {
+  constructor(event: TEvent, headers: object, options?: TOptions) {
     this.request = event;
     this.response = new Response(headers);
 
     if (options) {
-      this.options = {
-        ...this.options,
+      this._options = {
+        ...this._options,
         ...options,
       };
     }
   }
 
-  _check(
-    resource: string,
-    cbs: { (request: any, response: IResponse): void }[]
-  ) {
+  _check(HttpMethod: THttpMethod, resource: string, cbs: TResponseCallbacks[]) {
     if (!resource || typeof resource !== 'string')
-      throw new InternalServerError('Router GET: No resource provided');
+      throw new InternalServerError(
+        `Router ${HttpMethod}: No resource provided`
+      );
     if (!Array.isArray(cbs) || !cbs?.length)
-      throw new InternalServerError('Router GET: No callbacks provided');
+      throw new InternalServerError(
+        `Router ${HttpMethod}: No callbacks provided`
+      );
   }
 
-  get(
-    resource: string,
-    ...cbs: { (request: any, response: IResponse): void }[]
-  ) {
-    console.log('Router GET', resource, cbs);
-    this._check(resource, cbs);
+  public get(resource: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.GET}`, resource, cbs);
+    this._check(HttpMethod.GET, resource, cbs);
 
-    this.queue.push(['GET', resource, cbs]);
+    this._queue.push([HttpMethod.GET, resource, cbs]);
     return this;
   }
 
-  async post(
-    resource: string,
-    ...cbs: { (request: any, response: IResponse): void }[]
-  ) {
-    console.log('Router POST', resource, cbs);
-    this._check(resource, cbs);
+  public post(resource: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.POST}`, resource, cbs);
+    this._check(HttpMethod.POST, resource, cbs);
 
-    this.queue.push(['POST', resource, cbs]);
+    this._queue.push([HttpMethod.POST, resource, cbs]);
     return this;
   }
 
-  async patch(
-    resource: string,
-    ...cbs: { (request: any, response: IResponse): void }[]
-  ) {
-    console.log('Router PATCH', resource, cbs);
-    this._check(resource, cbs);
+  public put(resource: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.PUT}`, resource, cbs);
+    this._check(HttpMethod.PUT, resource, cbs);
 
-    this.queue.push(['PATCH', resource, cbs]);
+    this._queue.push([HttpMethod.PUT, resource, cbs]);
     return this;
   }
 
-  async delete(
-    resource: string,
-    ...cbs: { (request: any, response: IResponse): void }[]
-  ) {
-    console.log('Router DELETE', resource, cbs);
-    this._check(resource, cbs);
+  public patch(resource: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.PATCH}`, resource, cbs);
+    this._check(HttpMethod.PATCH, resource, cbs);
 
-    this.queue.push(['DELETE', resource, cbs]);
+    this._queue.push(['PATCH', resource, cbs]);
     return this;
   }
 
-  async handle() {
-    if (!this.queue.length)
+  public delete(resource: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.DELETE}`, resource, cbs);
+    this._check(HttpMethod.DELETE, resource, cbs);
+
+    this._queue.push(['DELETE', resource, cbs]);
+    return this;
+  }
+
+  public async handle() {
+    if (!this._queue.length)
       throw new NotFound('Requested resource is not available', 'Router');
 
-    console.log('handle queue', this.queue);
+    console.log('handle queue', this._queue);
 
-    const session = this.queue.filter((q: any) => {
-      // could use find, but we want to check wrong Router setup
+    // could use find, but we want to check wrong Router setup
+    const session = this._queue.filter((q: any) => {
       const [httpMethod, resource] = q;
 
       return (
@@ -128,7 +124,7 @@ export default class Router {
         message: 'Something went wrong try again later...',
       };
 
-      if (this.options.debug && error.message) {
+      if (this._options.debug && error.message) {
         const DebugErrorMessage: { [key: string]: any } = {};
 
         DebugErrorMessage['errorSource'] = error.message;
@@ -152,7 +148,7 @@ export default class Router {
         message: error.message,
       };
 
-      if (this.options.debug) {
+      if (this._options.debug) {
         const DebugErrorMessage: { [key: string]: any } = {
           ...error.DebugErrorMessage,
         };
