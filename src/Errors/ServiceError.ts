@@ -6,9 +6,9 @@ export default class ServiceError extends BaseError {
     message: string,
     methodName: string,
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.INTERNAL_SERVER_ERROR,
+    statusCode: IStatusCodes = StatusCodes.INTERNAL_SERVER_ERROR,
     isOperational = true
   ) {
-    super(message, methodName, DebugErrorMessage, httpCode, isOperational);
+    super(message, methodName, DebugErrorMessage, statusCode, isOperational);
   }
 }

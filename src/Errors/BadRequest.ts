@@ -6,10 +6,10 @@ class BadRequest extends BaseError {
     message: string,
     methodName: string = '',
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.BAD_REQUEST,
+    statusCode: IStatusCodes = StatusCodes.BAD_REQUEST,
     isOperational: boolean = true
   ) {
-    super(message, methodName, DebugErrorMessage, httpCode, isOperational);
+    super(message, methodName, DebugErrorMessage, statusCode, isOperational);
   }
 }
 

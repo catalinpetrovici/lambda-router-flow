@@ -6,10 +6,10 @@ class ServiceUnavailable extends BaseError {
     message: string,
     methodName: string = '',
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.SERVICE_UNAVAILABLE,
+    statusCode: IStatusCodes = StatusCodes.SERVICE_UNAVAILABLE,
     isOperational: boolean = true
   ) {
-    super(message, methodName, DebugErrorMessage, httpCode, isOperational);
+    super(message, methodName, DebugErrorMessage, statusCode, isOperational);
   }
 }
 

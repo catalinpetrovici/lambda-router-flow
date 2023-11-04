@@ -6,10 +6,10 @@ class Unauthorized extends BaseError {
     message: string,
     methodName: string = '',
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.UNAUTHORIZED,
+    statusCode: IStatusCodes = StatusCodes.UNAUTHORIZED,
     isOperational: boolean = true
   ) {
-    super(message, methodName, DebugErrorMessage, httpCode, isOperational);
+    super(message, methodName, DebugErrorMessage, statusCode, isOperational);
   }
 }
 

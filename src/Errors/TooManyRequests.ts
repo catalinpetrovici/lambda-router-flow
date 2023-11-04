@@ -6,10 +6,10 @@ class TooManyRequests extends BaseError {
     message: string,
     methodName: string = '',
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.TOO_MANY_REQUESTS,
+    statusCode: IStatusCodes = StatusCodes.TOO_MANY_REQUESTS,
     isOperational: boolean = true
   ) {
-    super(message, methodName, DebugErrorMessage, httpCode, isOperational);
+    super(message, methodName, DebugErrorMessage, statusCode, isOperational);
   }
 }
 

@@ -141,8 +141,8 @@ export default class Router {
     if (error instanceof BaseError) {
       console.log('TrustedError', JSON.stringify(error));
       let statusCode =
-        error.httpCode !== StatusCodes.OK
-          ? error.httpCode
+        error.statusCode !== StatusCodes.OK
+          ? error.statusCode
           : StatusCodes.INTERNAL_SERVER_ERROR;
       const responseError: { [key: string]: any } = {
         message: error.message,

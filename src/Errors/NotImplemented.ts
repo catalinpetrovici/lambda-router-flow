@@ -6,10 +6,10 @@ class NotImplemented extends BaseError {
     message: string,
     methodName: string = '',
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.NOT_IMPLEMENTED,
+    statusCode: IStatusCodes = StatusCodes.NOT_IMPLEMENTED,
     isOperational: boolean = true
   ) {
-    super(message, methodName, DebugErrorMessage, httpCode, isOperational);
+    super(message, methodName, DebugErrorMessage, statusCode, isOperational);
   }
 }
 

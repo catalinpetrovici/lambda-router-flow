@@ -1,12 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
-import {
-  Router,
-  Response,
-  IResponse,
-  StatusCodes,
-  Unauthorized,
-} from '../src/index';
-import { ServiceError, BadRequest } from '../src/index';
+import { Router, IResponse, StatusCodes, Unauthorized } from '../src/index';
+import BaseError from '../src/Errors/BaseError';
 
 describe('Router', () => {
   it('should return NotFound status code and descriptive message when no route provided', async () => {
@@ -30,9 +24,13 @@ describe('Router', () => {
       await router.handle();
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toBe('Requested resource is not available');
-      expect(error.httpCode).toBe(StatusCodes.NOT_FOUND);
-      return router.error(error);
+      if (error instanceof BaseError) {
+        expect(error.message).toBe('Requested resource is not available');
+        expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
+        return router.error(error);
+      } else {
+        expect(true).toBe(false);
+      }
     }
   });
 
@@ -59,9 +57,13 @@ describe('Router', () => {
       await router.handle();
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toBe('Requested resource is not available');
-      expect(error.httpCode).toBe(StatusCodes.NOT_FOUND);
-      return router.error(error);
+      if (error instanceof BaseError) {
+        expect(error.message).toBe('Requested resource is not available');
+        expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
+        return router.error(error);
+      } else {
+        expect(true).toBe(false);
+      }
     }
   });
 
@@ -88,9 +90,13 @@ describe('Router', () => {
       await router.handle();
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toBe('Requested resource is not available');
-      expect(error.httpCode).toBe(StatusCodes.NOT_FOUND);
-      return router.error(error);
+      if (error instanceof BaseError) {
+        expect(error.message).toBe('Requested resource is not available');
+        expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
+        return router.error(error);
+      } else {
+        expect(true).toBe(false);
+      }
     }
   });
 
@@ -111,9 +117,13 @@ describe('Router', () => {
       await router.handle();
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toBe('Router GET: No callbacks provided');
-      expect(error.httpCode).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
-      return router.error(error);
+      if (error instanceof BaseError) {
+        expect(error.message).toBe('Router GET: No callbacks provided');
+        expect(error.statusCode).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
+        return router.error(error);
+      } else {
+        expect(true).toBe(false);
+      }
     }
   });
 
@@ -140,11 +150,15 @@ describe('Router', () => {
       await router.handle();
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toBe(
-        `Function ${auth.name} don't return a valid response`
-      );
-      expect(error.httpCode).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
-      return router.error(error);
+      if (error instanceof BaseError) {
+        expect(error.message).toBe(
+          `Function ${auth.name} don't return a valid response`
+        );
+        expect(error.statusCode).toBe(StatusCodes.INTERNAL_SERVER_ERROR);
+        return router.error(error);
+      } else {
+        expect(true).toBe(false);
+      }
     }
   });
 
@@ -174,9 +188,13 @@ describe('Router', () => {
       await router.handle();
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toBe('Unauthorized');
-      expect(error.httpCode).toBe(StatusCodes.UNAUTHORIZED);
-      return router.error(error);
+      if (error instanceof BaseError) {
+        expect(error.message).toBe('Unauthorized');
+        expect(error.statusCode).toBe(StatusCodes.UNAUTHORIZED);
+        return router.error(error);
+      } else {
+        expect(true).toBe(false);
+      }
     }
   });
 });

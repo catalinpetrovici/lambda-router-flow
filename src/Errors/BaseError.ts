@@ -3,14 +3,14 @@ import { StatusCodes, type IStatusCodes } from '../StatusCodes';
 class BaseError extends Error {
   methodName;
   DebugErrorMessage;
-  httpCode;
+  statusCode;
   isOperational;
 
   constructor(
     message: string,
     methodName: string,
     DebugErrorMessage: object = {},
-    httpCode: IStatusCodes = StatusCodes.INTERNAL_SERVER_ERROR,
+    statusCode: IStatusCodes = StatusCodes.INTERNAL_SERVER_ERROR,
     isOperational: boolean = true
   ) {
     super(message);
@@ -29,7 +29,7 @@ class BaseError extends Error {
       this.DebugErrorMessage = DebugErrorMessage;
     }
 
-    this.httpCode = httpCode;
+    this.statusCode = statusCode;
     this.isOperational = isOperational;
 
     Error.captureStackTrace(this);
