@@ -3,12 +3,7 @@ import { HttpMethod, TOptions, THttpMethod } from './RouterTypes';
 import { TMiddlewareCallbacks } from './RouterTypes';
 import { Response, IResponse } from '../Response';
 import { StatusCodes } from '../StatusCodes';
-import {
-  errorHandlerInstance,
-  InternalServerError,
-  NotFound,
-  ServiceError,
-} from '../Errors';
+import { errorHandlerInstance, InternalServerError, NotFound } from '../Errors';
 import BaseError from '../Errors/BaseError';
 
 export default class Router {
@@ -87,7 +82,10 @@ export default class Router {
 
   public before(callback: TMiddlewareCallbacks) {
     if (!callback) return this;
-    if (callback.constructor.name !== 'Function') {
+    if (
+      callback.constructor.name !== 'Function' &&
+      callback.constructor.name !== 'AsyncFunction'
+    ) {
       console.log(
         'Router: Before method require a callback function as a parameter '
       );
@@ -95,15 +93,17 @@ export default class Router {
       return this;
     }
 
-    this._beforeCb = (request, response, sessionStorage) =>
-      callback(request, response, sessionStorage);
+    this._beforeCb = callback;
 
     return this;
   }
 
   public after(callback: TMiddlewareCallbacks) {
     if (!callback) return this;
-    if (callback.constructor.name !== 'Function') {
+    if (
+      callback.constructor.name !== 'Function' &&
+      callback.constructor.name !== 'AsyncFunction'
+    ) {
       console.log(
         'Router: After method require a callback function as a parameter '
       );
@@ -111,8 +111,7 @@ export default class Router {
       return this;
     }
 
-    this._afterCb = (request, response, sessionStorage) =>
-      callback(request, response, sessionStorage);
+    this._afterCb = callback;
 
     return this;
   }

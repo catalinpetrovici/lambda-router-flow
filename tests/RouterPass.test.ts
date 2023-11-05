@@ -1,5 +1,10 @@
 import { describe, it, expect } from '@jest/globals';
-import { Router, IResponse, StatusCodes, Unauthorized } from '../src/index';
+import {
+  Router,
+  type IResponse,
+  StatusCodes,
+  Unauthorized,
+} from '../src/index';
 import BaseError from '../src/Errors/BaseError';
 
 describe('Router', () => {

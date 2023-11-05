@@ -1,7 +1,11 @@
 import { describe, it, expect } from '@jest/globals';
-import { Router, IResponse, StatusCodes, Unauthorized } from '../src/index';
+import {
+  Router,
+  type IResponse,
+  StatusCodes,
+  Unauthorized,
+} from '../src/index';
 import BaseError from '../src/Errors/BaseError';
-import { afterEach } from 'node:test';
 import { HttpMethod } from '../src/Router/RouterTypes';
 
 describe('Router', () => {
@@ -22,7 +26,7 @@ describe('Router', () => {
     const router = new Router(event, headers);
 
     try {
-      router.after((request) => {
+      router.before((request) => {
         expect(request.httpMethod).toBe(HttpMethod.GET);
         expect(request.resource).toBe('/users');
       });
@@ -134,6 +138,15 @@ describe('Router', () => {
         length: 1,
       });
     };
+
+    const asyncOperation = async () => {
+      return new Promise((res) => {
+        setTimeout(() => {
+          res('Effect');
+        }, 1000);
+      });
+    };
+
     const headers = {
       'Access-Control-Allow-Origin': '*',
     };
@@ -142,11 +155,14 @@ describe('Router', () => {
       resource: '/users',
     };
     const router = new Router(event, headers);
-    const check = async () => {
-      throw new Unauthorized('Unauthorized', 'check');
-    };
+
     try {
-      router.before(check);
+      router.before(async (request) => {
+        const res = await asyncOperation();
+        expect(res).toBe('Effect');
+
+        throw new Unauthorized('Unauthorized', 'check');
+      });
 
       router.get('/users', getUsers);
 
@@ -165,13 +181,22 @@ describe('Router', () => {
     }
   });
 
-  it('should return Unauthorized error triggered by before middleware', async () => {
+  it('should return Unauthorized error triggered by after middleware', async () => {
     const getUsers = async (_: any, response: IResponse) => {
       return response.status(200).json({
         data: [{ name: 'Joe' }],
         length: 1,
       });
     };
+
+    const asyncOperation = async () => {
+      return new Promise((res) => {
+        setTimeout(() => {
+          res('Effect');
+        }, 1000);
+      });
+    };
+
     const headers = {
       'Access-Control-Allow-Origin': '*',
     };
@@ -180,15 +205,18 @@ describe('Router', () => {
       resource: '/users',
     };
     const router = new Router(event, headers);
-    const check = async () => {
-      throw new Unauthorized('Unauthorized', 'check');
-    };
+
     try {
       router.before(() => {});
 
       router.get('/users', getUsers);
 
-      router.after(check);
+      router.after(async (request) => {
+        const res = await asyncOperation();
+        expect(res).toBe('Effect');
+
+        throw new Unauthorized('Unauthorized', 'check');
+      });
 
       await router.handle();
       expect(true).toBe(false);

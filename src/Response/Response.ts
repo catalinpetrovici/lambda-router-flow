@@ -1,10 +1,14 @@
 import { StatusCodes, type IStatusCodes } from '../StatusCodes';
 
 export interface IResponse {
-  set: (property: string, value: number | string | boolean) => this;
-  status: (statusCode: IStatusCodes) => this;
-  cookie: (name: string, value: string, options: { maxAge: number }) => this;
-  json: (response: object | string) => this;
+  set: (property: string, value: number | string | boolean) => IResponse;
+  status: (statusCode: IStatusCodes) => IResponse;
+  cookie: (
+    name: string,
+    value: string,
+    options: { maxAge: number }
+  ) => IResponse;
+  json: (response: object | string) => IResponse;
   send: () => {
     statusCode: number;
     body: string;
