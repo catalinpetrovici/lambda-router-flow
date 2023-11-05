@@ -1,13 +1,22 @@
 import { type TEvent, TQueue, TResponseCallbacks } from './RouterTypes';
 import { HttpMethod, TOptions, THttpMethod } from './RouterTypes';
+import { TMiddlewareCallbacks } from './RouterTypes';
 import { Response, IResponse } from '../Response';
 import { StatusCodes } from '../StatusCodes';
-import { errorHandlerInstance, InternalServerError, NotFound } from '../Errors';
+import {
+  errorHandlerInstance,
+  InternalServerError,
+  NotFound,
+  ServiceError,
+} from '../Errors';
 import BaseError from '../Errors/BaseError';
 
 export default class Router {
   public request: TEvent = {};
   public response: IResponse;
+  public sessionStorage = {};
+  private _beforeCb: TMiddlewareCallbacks | undefined = undefined;
+  private _afterCb: TMiddlewareCallbacks | undefined = undefined;
   private _queue: TQueue[] = [];
   private _options: TOptions = {
     debug: false,
@@ -64,7 +73,7 @@ export default class Router {
     console.log(`Router ${HttpMethod.PATCH}`, resource, cbs);
     this._check(HttpMethod.PATCH, resource, cbs);
 
-    this._queue.push(['PATCH', resource, cbs]);
+    this._queue.push([HttpMethod.PATCH, resource, cbs]);
     return this;
   }
 
@@ -72,15 +81,45 @@ export default class Router {
     console.log(`Router ${HttpMethod.DELETE}`, resource, cbs);
     this._check(HttpMethod.DELETE, resource, cbs);
 
-    this._queue.push(['DELETE', resource, cbs]);
+    this._queue.push([HttpMethod.DELETE, resource, cbs]);
+    return this;
+  }
+
+  public before(callback: TMiddlewareCallbacks) {
+    if (!callback) return this;
+    if (callback.constructor.name !== 'Function') {
+      console.log(
+        'Router: Before method require a callback function as a parameter '
+      );
+
+      return this;
+    }
+
+    this._beforeCb = (request, response, sessionStorage) =>
+      callback(request, response, sessionStorage);
+
+    return this;
+  }
+
+  public after(callback: TMiddlewareCallbacks) {
+    if (!callback) return this;
+    if (callback.constructor.name !== 'Function') {
+      console.log(
+        'Router: After method require a callback function as a parameter '
+      );
+
+      return this;
+    }
+
+    this._afterCb = (request, response, sessionStorage) =>
+      callback(request, response, sessionStorage);
+
     return this;
   }
 
   public async handle() {
     if (!this._queue.length)
       throw new NotFound('Requested resource is not available', 'Router');
-
-    console.log('handle queue', this._queue);
 
     // could use find, but we want to check wrong Router setup
     const session = this._queue.filter((q: any) => {
@@ -102,18 +141,30 @@ export default class Router {
 
     const callbacksSession = session[0][2];
 
+    if (this._beforeCb) {
+      await this._beforeCb(this.request, this.response, this.sessionStorage);
+    }
+
     for (let [i, callback] of callbacksSession.entries()) {
       if (i === callbacksSession.length - 1) {
-        const response = await callback(this.request, this.response);
+        const response = await callback(
+          this.request,
+          this.response,
+          this.sessionStorage
+        );
 
         if (!response || !(response instanceof Response))
           throw new InternalServerError(
             `Function ${callback?.name} don't return a valid response`
           );
 
+        if (this._afterCb) {
+          await this._afterCb(this.request, this.response, this.sessionStorage);
+        }
+
         return this.response.send();
       }
-      await callback(this.request, this.response);
+      await callback(this.request, this.response, this.sessionStorage);
     }
   }
 

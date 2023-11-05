@@ -11,7 +11,19 @@ export const HttpMethod = {
 export type THttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export type TResponseCallbacks = {
-  (request: any, response: IResponse): Promise<void | IResponse>;
+  (
+    request: any,
+    response: IResponse,
+    sessionStorage: any
+  ): Promise<void | IResponse>;
+};
+
+export type TMiddlewareCallbacks = {
+  (
+    request: any,
+    response: IResponse,
+    sessionStorage: any
+  ): Promise<void> | void;
 };
 
 export type TQueue = [THttpMethod, string, TResponseCallbacks[]];

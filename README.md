@@ -1,6 +1,6 @@
 # LambdaRouterFlow
 
-LambdaRouterFlow is a very simple router for AWS Lambda.
+LambdaRouterFlow is a simple router for AWS Lambda.
 
 ### Example Lambda Application
 
@@ -51,26 +51,40 @@ The only way to stop router middleware chain is to throw an error.
 ```javascript
 router.get('/roles', Validate.body, Check.permissions, Service.getAllRoles);
 
-export async function body(request, response) {
+export async function body(request, response, sessionStorage) {
   const result = userSchema.safeParse(request.body);
   if (!result.success)
     throw new BadRequest(`Object doesn't match schema`, 'body');
 }
 
-export async function permissions(request, response) {
+export async function permissions(request, response, sessionStorage) {
   // check permissions
   if (!isAuthorized) throw new Unauthorized('Unauthorized', 'permissions');
 }
 ```
 
-## Service
+```javascript
+router.before(Validate.Headers).after(Service.cacheResponse);
+
+router.get('/roles', Service.getAllRoles);
+
+// OR
+
+router.before(Validate.Headers);
+
+router.get('/roles', Service.getAllRoles);
+
+router.after(Service.triggerLambda);
+```
+
+## Service Example
 
 ```javascript
 import { ServiceError, StatusCodes } from 'lambda-router-flow';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
-export async function getAllRoles(request, response) {
+export async function getAllRoles(request, response, sessionStorage) {
   const client = new DynamoDBClient({});
   const docClient = DynamoDBDocumentClient.from(client);
 
@@ -102,7 +116,7 @@ export async function getAllRoles(request, response) {
 
 ## Error handling
 
-LambdaRouterFlow have it's own throw Errors
+LambdaRouterFlow have it's own custom Errors
 
 ```javascript
 /**
