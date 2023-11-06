@@ -131,6 +131,39 @@ describe('Router', () => {
     }
   });
 
+  it('should pass when after and before middleware are in chain', async () => {
+    const getUsers = async (_: any, response: IResponse) => {
+      return response.status(200).json({
+        data: [{ name: 'Joe' }],
+        length: 1,
+      });
+    };
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+    };
+    const event = {
+      httpMethod: 'GET',
+      resource: '/users',
+    };
+    const router = new Router(event, headers);
+
+    try {
+      // @ts-ignore
+      router.before(async () => {}).after(() => {});
+
+      router.get('/users', getUsers);
+
+      const response = await router.handle();
+      if (!response) return expect(true).toBe(false);
+
+      return response;
+    } catch (error: any) {
+      console.log('error after', error);
+      expect(true).toBe(false);
+      return router.error(error);
+    }
+  });
+
   it('should return Unauthorized error triggered by before middleware', async () => {
     const getUsers = async (_: any, response: IResponse) => {
       return response.status(200).json({

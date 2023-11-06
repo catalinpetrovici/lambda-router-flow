@@ -1,6 +1,6 @@
-# LambdaRouterFlow
+![Lambda-router-flow-Logo-1](https://github.com/catalinpetrovici/lambda-router-flow/assets/73588411/33a8588e-cc99-4c3c-ad63-fd07b2c687d3)
 
-LambdaRouterFlow is a simple router for AWS Lambda.
+LambdaRouterFlow is a simple and lightweight routing solution for AWS Lambda applications. It enables easy route definitions, middleware implementation, and error handling.
 
 ### Example Lambda Application
 
@@ -31,7 +31,7 @@ export const handler = async (event) => {
 
 ## Getting Started
 
-Add LambdaRouterFlow to your AWS Lambda app:
+To incorporate LambdaRouterFlow into your AWS Lambda application, use npm for the package installation:
 
 ```shell
 npm install lambda-router-flow
@@ -39,20 +39,32 @@ npm install lambda-router-flow
 
 ## Routes Definition
 
+Creating routes in LambdaRouterFlow is a breeze.
+
+1. Initiate an instance of Router.
+2. Provide the event and headers as parameters.
+3. Use methods like _router.get()_, _router.post()_, etc., to define routes.
+4. Return _await router.handle()_.
+
 ```javascript
 router.get('/roles', Handlers.getAllRoles);
 ```
 
+Each route method takes two arguments:
+
+- a string that defines the path
+- a function that defines what happens when that route is hit.
+
 ## Middlewares
 
-LambdaRouterFlow have middlewares.
-The only way to stop router middleware chain is to throw an error.
+Middlewares within LambdaRouterFlow are designed to execute actions between the request and response. The only way to stop the router middleware chain is to throw an error:
 
 ```javascript
 router.get('/roles', Validate.body, Check.permissions, Service.getAllRoles);
 
 export async function body(request, response, sessionStorage) {
   const result = userSchema.safeParse(request.body);
+  // define schema
   if (!result.success)
     throw new BadRequest(`Object doesn't match schema`, 'body');
 }
@@ -62,6 +74,12 @@ export async function permissions(request, response, sessionStorage) {
   if (!isAuthorized) throw new Unauthorized('Unauthorized', 'permissions');
 }
 ```
+
+### Before and After Middlewares
+
+Before middleware is designed to execute before all middlewares.
+
+After middleware is designed to execute after the Service function returns a valid response.
 
 ```javascript
 router.before(Validate.Headers).after(Service.cacheResponse);
@@ -78,6 +96,8 @@ router.after(Service.triggerLambda);
 ```
 
 ## Service Example
+
+Here's an example of a GET service that retrieves all roles from a DynamoDB table:
 
 ```javascript
 import { ServiceError, StatusCodes } from 'lambda-router-flow';
@@ -116,7 +136,7 @@ export async function getAllRoles(request, response, sessionStorage) {
 
 ## Error handling
 
-LambdaRouterFlow have it's own custom Errors
+LambdaRouterFlow provides custom errors for enhanced error management
 
 ```javascript
 /**
