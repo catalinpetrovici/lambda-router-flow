@@ -14,8 +14,10 @@
   },
   "scripts": {
     "dev": "node ./dist/lambda-router-flow.js",
-    "prepublish": "vite build",
-    "test": "jest"
+    "build": "vite build",
+    "test": "jest",
+    "release": "sh ./release.sh",
+    "prepack": "sh ./release.sh"
   },
   "repository": {
     "type": "git",
