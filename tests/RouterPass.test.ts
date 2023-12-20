@@ -158,6 +158,43 @@ describe('Router', () => {
     }
   });
 
+  it('should return a valid response for OPTIONS HTTP method and for a specific API Gateway resource', async () => {
+    const updateUser = async (_: any, response: IResponse) => {
+      return response.status(StatusCodes.OK).json({
+        status: 'Success',
+      });
+    };
+
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+    };
+
+    const event = {
+      httpMethod: 'OPTIONS',
+      resource: '/users/{userId}',
+    };
+    const router = new Router(event, headers);
+
+    try {
+      router.options('/users/{userId}', updateUser);
+
+      const response = await router.handle();
+      if (!response) return expect(true).toBe(false);
+
+      expect(response).toHaveProperty('statusCode');
+      expect(response).toHaveProperty('body');
+      expect(response).toHaveProperty('headers');
+
+      expect(response.body).toBe('{"status":"Success"}');
+      expect(response.statusCode).toBe(StatusCodes.OK);
+
+      return response;
+    } catch (error: any) {
+      expect(true).toBe(false);
+      return router.error(error);
+    }
+  });
+
   it(`should pass when error router is trusted`, async () => {
     const auth = async (_: any, response: IResponse) => {
       return response.status(200).json({

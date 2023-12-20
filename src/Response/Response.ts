@@ -1,13 +1,19 @@
 import { StatusCodes, type IStatusCodes } from '../StatusCodes';
+import ms, { type StringValue } from './ms';
+
+export interface ICookieOptions {
+  path?: string;
+  domain?: string;
+  maxAge?: StringValue;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: 'Lax' | 'None' | 'Strict';
+}
 
 export interface IResponse {
   set: (property: string, value: number | string | boolean) => IResponse;
   status: (statusCode: IStatusCodes) => IResponse;
-  cookie: (
-    name: string,
-    value: string,
-    options: { maxAge: number }
-  ) => IResponse;
+  cookie: (name: string, value: string, options?: ICookieOptions) => IResponse;
   json: (response: object | string) => IResponse;
   send: () => {
     statusCode: number;
@@ -32,7 +38,14 @@ export default class Response implements IResponse {
     this.response = undefined;
   }
 
-  isJson(item: object | string) {
+  private _randomizeCase(input: string): string {
+    const randomCase = (char: string) =>
+      Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase();
+
+    return input.split('').map(randomCase).join('');
+  }
+
+  private _isJson(item: object | string) {
     let value = typeof item !== 'string' ? JSON.stringify(item) : item;
     try {
       value = JSON.parse(value);
@@ -58,25 +71,60 @@ export default class Response implements IResponse {
     return this;
   }
 
-  cookie(name: string, value: string, options: { maxAge: number }) {
+  cookie(name: string, value: string, options?: ICookieOptions) {
     if (typeof name !== 'string' || typeof value !== 'string') {
       throw new Error('Invalid cookie name or value');
     }
 
-    const { maxAge } = options;
-    const expires = Date.now() + maxAge;
+    let { path, domain, maxAge, httpOnly, secure, sameSite } = options || {};
 
-    const cookie = `${name}=${value}; expires=${new Date(
-      expires
-    ).toUTCString()};`;
+    let corsOptions = '';
 
-    this.headers['SET-COOKIE'] = cookie;
+    if (path) {
+      corsOptions += ` Path=${path};`;
+    }
+
+    if (domain) {
+      corsOptions += ` Domain=${path};`;
+    }
+
+    if (maxAge) {
+      corsOptions += ` expires=${new Date(
+        Date.now() + ms(maxAge)
+      ).toUTCString()};`;
+    }
+
+    if (httpOnly) {
+      corsOptions += ' HttpOnly;';
+    }
+
+    if (secure) {
+      corsOptions += ' Secure;';
+    }
+
+    if (sameSite) {
+      if (sameSite === 'None') {
+        corsOptions += ` SameSite=None; ${secure ? '' : 'Secure;'}}`;
+      } else {
+        corsOptions += ` SameSite=${sameSite};`;
+      }
+    }
+
+    const cookie = `${name}=${value};${corsOptions}`;
+
+    let SET_COOKIE = this._randomizeCase('SET-COOKIE');
+
+    while (this.headers[SET_COOKIE]) {
+      SET_COOKIE = this._randomizeCase('SET-COOKIE');
+    }
+
+    this.headers[SET_COOKIE] = cookie;
+
     return this;
   }
 
   json(response: object | string) {
-    console.log('Response json');
-    if (!this.isJson(response)) throw new Error('Invalid JSON format');
+    if (!this._isJson(response)) throw new Error('Invalid JSON format');
 
     this.response = response;
     return this;
