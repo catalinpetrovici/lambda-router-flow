@@ -6,9 +6,16 @@ export const HttpMethod = {
   PUT: 'PUT',
   PATCH: 'PATCH',
   DELETE: 'DELETE',
+  OPTIONS: 'OPTIONS',
 } as const;
 
-export type THttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type THttpMethod =
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'OPTIONS';
 
 export type TResponseCallbacks = {
   (
@@ -29,7 +36,13 @@ export type TMiddlewareCallbacks = {
 export type TQueue = [THttpMethod, string, TResponseCallbacks[]];
 
 export type TOptions = {
-  debug: boolean;
+  debug?: boolean;
+  cors?: boolean;
+};
+
+export type THeaders = {
+  'Access-Control-Allow-Origin'?: string | string[];
+  [key: string]: any;
 };
 
 export type TEvent = {
@@ -44,6 +57,8 @@ export type TEvent = {
     'X-Forwarded-For'?: string;
     'X-Forwarded-Port'?: string;
     'X-Forwarded-Proto'?: string;
+    Origin?: string;
+    origin?: string;
   };
   multiValueHeaders?: {
     Accept?: string[];

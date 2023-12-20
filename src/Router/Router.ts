@@ -1,5 +1,5 @@
 import { type TEvent, TQueue, TResponseCallbacks } from './RouterTypes';
-import { HttpMethod, TOptions, THttpMethod } from './RouterTypes';
+import { HttpMethod, TOptions, THttpMethod, THeaders } from './RouterTypes';
 import { TMiddlewareCallbacks } from './RouterTypes';
 import { Response, IResponse } from '../Response';
 import { StatusCodes } from '../StatusCodes';
@@ -15,10 +15,17 @@ export default class Router {
   private _queue: TQueue[] = [];
   private _options: TOptions = {
     debug: false,
+    cors: false,
   };
 
-  constructor(event: TEvent, headers: object, options?: TOptions) {
+  constructor(event: TEvent, headers: THeaders = {}, options?: TOptions) {
     this.request = event;
+
+    if (options?.cors) {
+      const origin = event?.headers?.Origin || event?.headers?.origin;
+      this._cors(origin, headers);
+    }
+
     this.response = new Response(headers);
 
     if (options) {
@@ -29,7 +36,11 @@ export default class Router {
     }
   }
 
-  _check(HttpMethod: THttpMethod, resource: string, cbs: TResponseCallbacks[]) {
+  private _check(
+    HttpMethod: THttpMethod,
+    resource: string,
+    cbs: TResponseCallbacks[]
+  ) {
     if (!resource || typeof resource !== 'string')
       throw new InternalServerError(
         `Router ${HttpMethod}: No resource provided`
@@ -38,6 +49,46 @@ export default class Router {
       throw new InternalServerError(
         `Router ${HttpMethod}: No callbacks provided`
       );
+  }
+
+  private _cors(origin: string | undefined, headers: THeaders) {
+    if (!headers) {
+      throw new InternalServerError(
+        'CORS policy is active, but the request contains no headers.'
+      );
+    }
+    if (!origin) {
+      throw new InternalServerError(
+        'CORS policy is active, but no origin was found in the request.'
+      );
+    }
+
+    if (!headers['Access-Control-Allow-Origin']) {
+      headers['Access-Control-Allow-Origin'] = '*';
+      return;
+    }
+
+    const allowedOrigins = headers['Access-Control-Allow-Origin'];
+    if (Array.isArray(allowedOrigins)) {
+      const allowedOrigin = allowedOrigins.includes(origin);
+
+      if (allowedOrigin) {
+        headers['Access-Control-Allow-Origin'] = origin;
+      } else {
+        delete headers['Access-Control-Allow-Origin'];
+      }
+
+      return;
+    }
+
+    if (
+      typeof allowedOrigins === 'string' &&
+      allowedOrigins.startsWith(origin)
+    ) {
+      headers['Access-Control-Allow-Origin'] = origin;
+
+      return;
+    }
   }
 
   public get(resource: string, ...cbs: TResponseCallbacks[]) {
@@ -80,13 +131,21 @@ export default class Router {
     return this;
   }
 
+  public options(resource: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.OPTIONS}`, resource, cbs);
+    this._check(HttpMethod.OPTIONS, resource, cbs);
+
+    this._queue.push([HttpMethod.OPTIONS, resource, cbs]);
+    return this;
+  }
+
   public before(callback: TMiddlewareCallbacks) {
     if (!callback) return this;
     if (
       callback.constructor.name !== 'Function' &&
       callback.constructor.name !== 'AsyncFunction'
     ) {
-      console.log(
+      console.error(
         'Router: Before method require a callback function as a parameter '
       );
 
@@ -104,7 +163,7 @@ export default class Router {
       callback.constructor.name !== 'Function' &&
       callback.constructor.name !== 'AsyncFunction'
     ) {
-      console.log(
+      console.error(
         'Router: After method require a callback function as a parameter '
       );
 
@@ -134,9 +193,11 @@ export default class Router {
       throw new NotFound('Requested resource is not available', 'Router');
 
     if (session.length > 1)
-      throw new Error('Multiple requests found. Please check the Router setup');
+      throw new InternalServerError(
+        'Multiple requests found. Please check the Router setup'
+      );
     if (!Array.isArray(session[0][2]) || !session[0][2]?.length)
-      throw new Error('No callbacks found');
+      throw new InternalServerError('No callbacks found');
 
     const callbacksSession = session[0][2];
 
@@ -169,7 +230,7 @@ export default class Router {
 
   error(error: Error | BaseError, options?: {}) {
     if (!errorHandlerInstance.isTrustedError(error)) {
-      console.log('InternalServerError', JSON.stringify(error));
+      console.error('InternalServerError', JSON.stringify(error));
       const responseError: { [key: string]: any } = {
         message: 'Something went wrong try again later...',
       };
@@ -189,7 +250,7 @@ export default class Router {
     }
 
     if (error instanceof BaseError) {
-      console.log('TrustedError', JSON.stringify(error));
+      console.error('TrustedError', JSON.stringify(error));
       let statusCode =
         error.statusCode !== StatusCodes.OK
           ? error.statusCode
