@@ -55,14 +55,14 @@ export default class Response implements IResponse {
     return typeof value === 'object' && value !== null;
   }
 
-  set(property: string, value: number | string | boolean) {
+  public set(property: string, value: number | string | boolean) {
     if (!property || !value) throw new Error('Invalid property or value');
     this.headers[property] = value;
 
     return this;
   }
 
-  status(statusCode: IStatusCodes) {
+  public status(statusCode: IStatusCodes) {
     if (typeof statusCode !== 'number') {
       throw new Error('Invalid statusCode');
     }
@@ -71,7 +71,7 @@ export default class Response implements IResponse {
     return this;
   }
 
-  cookie(name: string, value: string, options?: ICookieOptions) {
+  public cookie(name: string, value: string, options?: ICookieOptions) {
     if (typeof name !== 'string' || typeof value !== 'string') {
       throw new Error('Invalid cookie name or value');
     }
@@ -104,7 +104,7 @@ export default class Response implements IResponse {
 
     if (sameSite) {
       if (sameSite === 'None') {
-        corsOptions += ` SameSite=None; ${secure ? '' : 'Secure;'}}`;
+        corsOptions += ` SameSite=None; ${secure ? '' : 'Secure;'}`;
       } else {
         corsOptions += ` SameSite=${sameSite};`;
       }
@@ -123,14 +123,14 @@ export default class Response implements IResponse {
     return this;
   }
 
-  json(response: object | string) {
+  public json(response: object | string) {
     if (!this._isJson(response)) throw new Error('Invalid JSON format');
 
     this.response = response;
     return this;
   }
 
-  send(): {
+  public send(): {
     statusCode: number;
     body: string;
     headers: {
