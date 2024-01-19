@@ -1,6 +1,6 @@
 {
   "name": "lambda-router-flow",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "LambdaRouterFlow is a simple router for AWS Lambda.",
   "main": "./dist/lambda-router-flow.cjs",
   "module": "./dist/lambda-router-flow.js",
@@ -17,7 +17,8 @@
     "build": "vite build",
     "test": "jest",
     "release": "sh ./release.sh",
-    "prepack": "sh ./release.sh"
+    "prepack": "sh ./release.sh",
+    "prepublish": "vite build"
   },
   "repository": {
     "type": "git",
