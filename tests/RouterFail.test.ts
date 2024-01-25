@@ -21,7 +21,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -30,7 +30,7 @@ describe('Router', () => {
       expect(true).toBe(false);
     } catch (error: any) {
       if (error instanceof BaseError) {
-        expect(error.message).toBe('Requested resource is not available');
+        expect(error.message).toBe('Requested path is not available');
         expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
         return router.error(error);
       } else {
@@ -52,7 +52,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -63,7 +63,7 @@ describe('Router', () => {
       expect(true).toBe(false);
     } catch (error: any) {
       if (error instanceof BaseError) {
-        expect(error.message).toBe('Requested resource is not available');
+        expect(error.message).toBe('Requested path is not available');
         expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
         return router.error(error);
       } else {
@@ -72,7 +72,7 @@ describe('Router', () => {
     }
   });
 
-  it('should return NotFound status code and descriptive message when resource routes are not matching', async () => {
+  it('should return NotFound status code and descriptive message when path routes are not matching', async () => {
     const auth = async (_: any, response: IResponse) => {
       return response.status(200).json({
         data: [],
@@ -85,7 +85,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -96,7 +96,7 @@ describe('Router', () => {
       expect(true).toBe(false);
     } catch (error: any) {
       if (error instanceof BaseError) {
-        expect(error.message).toBe('Requested resource is not available');
+        expect(error.message).toBe('Requested path is not available');
         expect(error.statusCode).toBe(StatusCodes.NOT_FOUND);
         return router.error(error);
       } else {
@@ -112,7 +112,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -145,7 +145,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -183,7 +183,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 

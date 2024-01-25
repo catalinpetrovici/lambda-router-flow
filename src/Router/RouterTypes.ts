@@ -113,5 +113,11 @@ export type TEvent = {
   };
   body?: object | string | null;
   isBase64Encoded?: boolean;
+  routerFlow?: {
+    pathParameters?: {
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
   [key: string]: any;
 };

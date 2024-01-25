@@ -12,7 +12,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
       headers: {
         origin: 'http://localhost:4173',
       },
@@ -37,7 +37,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error', error);
       expect(true).toBe(false);
       return router.error(error);
     }
@@ -50,7 +49,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
       headers: {
         origin: 'http://localhost:4173',
       },
@@ -85,7 +84,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error', error);
       expect(true).toBe(false);
       return router.error(error);
     }
@@ -102,7 +100,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
       headers: {
         origin: 'http://localhost:4002',
       },
@@ -137,7 +135,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error', error);
       expect(true).toBe(false);
       return router.error(error);
     }
@@ -154,7 +151,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
       headers: {
         origin: 'http://localhost:8800',
       },
@@ -189,7 +186,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error', error);
       expect(true).toBe(false);
       return router.error(error);
     }
