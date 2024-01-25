@@ -6,6 +6,7 @@ import {
   Unauthorized,
 } from '../src/index';
 import BaseError from '../src/Errors/BaseError';
+import { TEvent } from '../src/Router/RouterTypes';
 
 describe('Router', () => {
   it('should return a valid response for GET HTTP method and for a specific API Gateway resource', async () => {
@@ -22,7 +23,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
@@ -41,7 +42,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error', error);
       expect(true).toBe(false);
       return router.error(error);
     }
@@ -60,7 +60,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'POST',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
@@ -85,7 +85,7 @@ describe('Router', () => {
   });
 
   it('should return a valid response for PATCH HTTP method and for a specific API Gateway resource', async () => {
-    const updateUser = async (_: any, response: IResponse) => {
+    const updateUser = async (event: TEvent, response: IResponse) => {
       return response.status(StatusCodes.OK).json({
         name: 'Joe',
       });
@@ -95,14 +95,14 @@ describe('Router', () => {
       'Access-Control-Allow-Origin': '*',
     };
 
-    const event = {
+    const event: TEvent = {
       httpMethod: 'PATCH',
-      resource: '/users/{userId}',
+      path: '/users/018d4256-7f6b-7289-a377-c9ad75702090',
     };
     const router = new Router(event, headers);
 
     try {
-      router.patch('/users/{userId}', updateUser);
+      router.patch('/users/{userId+}', updateUser);
 
       const response = await router.handle();
       if (!response) return expect(true).toBe(false);
@@ -114,6 +114,10 @@ describe('Router', () => {
       expect(response.body).toBe('{"name":"Joe"}');
       expect(response.statusCode).toBe(StatusCodes.OK);
 
+      expect(event.routerFlow?.pathParameters?.userId).toBe(
+        '018d4256-7f6b-7289-a377-c9ad75702090'
+      );
+
       return response;
     } catch (error: any) {
       expect(true).toBe(false);
@@ -122,7 +126,7 @@ describe('Router', () => {
   });
 
   it('should return a valid response for DELETE HTTP method and for a specific API Gateway resource', async () => {
-    const auth = async (_: any, response: IResponse) => {
+    const auth = async (_: TEvent, response: IResponse) => {
       return response.status(StatusCodes.OK).json({
         data: [],
       });
@@ -132,14 +136,14 @@ describe('Router', () => {
       'Access-Control-Allow-Origin': '*',
     };
 
-    const event = {
+    const event: TEvent = {
       httpMethod: 'DELETE',
-      resource: '/users/{userId}',
+      path: '/users/018d4257-1623-7aae-8b75-adf7f1c7c714',
     };
     const router = new Router(event, headers);
 
     try {
-      router.delete('/users/{userId}', auth);
+      router.delete('/users/{userId+}', auth);
 
       const response = await router.handle();
       if (!response) return expect(true).toBe(false);
@@ -150,6 +154,10 @@ describe('Router', () => {
 
       expect(response.body).toBe('{"data":[]}');
       expect(response.statusCode).toBe(StatusCodes.OK);
+
+      expect(event.routerFlow?.pathParameters?.userId).toBe(
+        '018d4257-1623-7aae-8b75-adf7f1c7c714'
+      );
 
       return response;
     } catch (error: any) {
@@ -169,14 +177,14 @@ describe('Router', () => {
       'Access-Control-Allow-Origin': '*',
     };
 
-    const event = {
+    const event: TEvent = {
       httpMethod: 'OPTIONS',
-      resource: '/users/{userId}',
+      path: '/users/018d4257-75e1-7ce2-8ead-1a8c9346cf6b',
     };
     const router = new Router(event, headers);
 
     try {
-      router.options('/users/{userId}', updateUser);
+      router.options('/users/{userId+}', updateUser);
 
       const response = await router.handle();
       if (!response) return expect(true).toBe(false);
@@ -187,6 +195,10 @@ describe('Router', () => {
 
       expect(response.body).toBe('{"status":"Success"}');
       expect(response.statusCode).toBe(StatusCodes.OK);
+
+      expect(event.routerFlow?.pathParameters?.userId).toBe(
+        '018d4257-75e1-7ce2-8ead-1a8c9346cf6b'
+      );
 
       return response;
     } catch (error: any) {
@@ -211,7 +223,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -252,7 +264,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/auth',
+      path: '/auth',
     };
     const router = new Router(event, headers);
 
@@ -278,6 +290,68 @@ describe('Router', () => {
 
         return response;
       }
+    }
+  });
+
+  it(`should return a valid response for GET HTTP method and for nested path`, async () => {
+    const updateUser = async (_: any, response: IResponse) => {
+      return response.status(StatusCodes.OK).json({
+        status: 'Success',
+      });
+    };
+
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+    };
+
+    const event: TEvent = {
+      httpMethod: 'GET',
+      path: '/users/018d4255-ea19-7947-ba82-f665f4609999/messages/018d4256-2470-76cd-9233-4c0b528e3f99/comments/018d4256-4890-7092-95ab-774f15b64737/likes',
+    };
+    const router = new Router(event, headers);
+
+    try {
+      router.get(
+        '/users/{userId+}/messages/{messageId+}/comments/{commentId+}/likes',
+        updateUser
+      );
+      router.post(
+        '/users/{userId+}/messages/{messageId+}/comments/{commentId+}/likes',
+        updateUser
+      );
+      router.delete(
+        '/users/{userId+}/messages/{messageId+}/comments/{commentId+}/likes',
+        updateUser
+      );
+      router.patch(
+        '/users/{userId+}/messages/{messageId+}/comments/{commentId+}/likes',
+        updateUser
+      );
+
+      const response = await router.handle();
+      if (!response) return expect(true).toBe(false);
+
+      expect(response).toHaveProperty('statusCode');
+      expect(response).toHaveProperty('body');
+      expect(response).toHaveProperty('headers');
+
+      expect(response.body).toBe('{"status":"Success"}');
+      expect(response.statusCode).toBe(StatusCodes.OK);
+
+      expect(event.routerFlow?.pathParameters?.userId).toBe(
+        '018d4255-ea19-7947-ba82-f665f4609999'
+      );
+      expect(event.routerFlow?.pathParameters?.messageId).toBe(
+        '018d4256-2470-76cd-9233-4c0b528e3f99'
+      );
+      expect(event.routerFlow?.pathParameters?.commentId).toBe(
+        '018d4256-4890-7092-95ab-774f15b64737'
+      );
+
+      return response;
+    } catch (error: any) {
+      expect(true).toBe(false);
+      return router.error(error);
     }
   });
 });

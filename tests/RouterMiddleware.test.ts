@@ -21,14 +21,14 @@ describe('Router', () => {
     };
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
     try {
       router.before((request) => {
         expect(request.httpMethod).toBe(HttpMethod.GET);
-        expect(request.resource).toBe('/users');
+        expect(request.path).toBe('/users');
       });
 
       router.get('/users', getUsers);
@@ -36,7 +36,7 @@ describe('Router', () => {
       // @ts-ignore
       router.after((request) => {
         expect(request.httpMethod).toBe(HttpMethod.GET);
-        expect(request.resource).toBe('/users');
+        expect(request.path).toBe('/users');
       });
 
       const response = await router.handle();
@@ -69,7 +69,7 @@ describe('Router', () => {
     };
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
@@ -84,8 +84,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error####', error);
-
       if (error instanceof BaseError) {
         expect(error.message).toBe('Unauthorized');
         expect(error.statusCode).toBe(StatusCodes.UNAUTHORIZED);
@@ -110,7 +108,7 @@ describe('Router', () => {
     };
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
@@ -125,7 +123,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error after', error);
       expect(true).toBe(false);
       return router.error(error);
     }
@@ -143,7 +140,7 @@ describe('Router', () => {
     };
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
@@ -158,7 +155,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error after', error);
       expect(true).toBe(false);
       return router.error(error);
     }
@@ -185,7 +181,7 @@ describe('Router', () => {
     };
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 
@@ -235,7 +231,7 @@ describe('Router', () => {
     };
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
     };
     const router = new Router(event, headers);
 

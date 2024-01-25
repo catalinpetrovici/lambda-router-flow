@@ -38,13 +38,11 @@ export default class Router {
 
   private _check(
     HttpMethod: THttpMethod,
-    resource: string,
+    path: string,
     cbs: TResponseCallbacks[]
   ) {
-    if (!resource || typeof resource !== 'string')
-      throw new InternalServerError(
-        `Router ${HttpMethod}: No resource provided`
-      );
+    if (!path || typeof path !== 'string')
+      throw new InternalServerError(`Router ${HttpMethod}: No path provided`);
     if (!Array.isArray(cbs) || !cbs?.length)
       throw new InternalServerError(
         `Router ${HttpMethod}: No callbacks provided`
@@ -91,51 +89,98 @@ export default class Router {
     }
   }
 
-  public get(resource: string, ...cbs: TResponseCallbacks[]) {
-    console.log(`Router ${HttpMethod.GET}`, resource, cbs);
-    this._check(HttpMethod.GET, resource, cbs);
+  private _getPathParameters(
+    eventPath: string | undefined,
+    urlPath: string | undefined
+  ) {
+    if (!eventPath || !urlPath) return {};
 
-    this._queue.push([HttpMethod.GET, resource, cbs]);
+    const routeSegments = eventPath.split('/').filter(Boolean);
+    const pathSegments = urlPath.split('/').filter(Boolean);
+    const pathParameters: { [key: string]: string } = {};
+
+    for (let i = 0; i < routeSegments.length; i++) {
+      const routeSegment = routeSegments[i];
+      const pathSegment = pathSegments[i];
+
+      if (routeSegment.startsWith('{') && routeSegment.endsWith('+}')) {
+        const paramName = routeSegment.slice(1, routeSegment.length - 2);
+        pathParameters[paramName] = pathSegment;
+      }
+    }
+
+    return pathParameters;
+  }
+
+  private _matchRoute(
+    eventPath: string | undefined,
+    urlPath: string | undefined
+  ) {
+    if (!eventPath || !urlPath) return false;
+
+    const routeSegments = eventPath.split('/').filter(Boolean);
+    const pathSegments = urlPath.split('/').filter(Boolean);
+
+    if (routeSegments.length !== pathSegments.length) return false;
+
+    for (let i = 0; i < routeSegments.length; i++) {
+      const routeSegment = routeSegments[i];
+      const pathSegment = pathSegments[i];
+
+      if (routeSegment.startsWith('{') && routeSegment.endsWith('+}')) {
+      } else if (routeSegment !== pathSegment) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public get(path: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.GET}`, path, cbs);
+    this._check(HttpMethod.GET, path, cbs);
+
+    this._queue.push([HttpMethod.GET, path, cbs]);
     return this;
   }
 
-  public post(resource: string, ...cbs: TResponseCallbacks[]) {
-    console.log(`Router ${HttpMethod.POST}`, resource, cbs);
-    this._check(HttpMethod.POST, resource, cbs);
+  public post(path: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.POST}`, path, cbs);
+    this._check(HttpMethod.POST, path, cbs);
 
-    this._queue.push([HttpMethod.POST, resource, cbs]);
+    this._queue.push([HttpMethod.POST, path, cbs]);
     return this;
   }
 
-  public put(resource: string, ...cbs: TResponseCallbacks[]) {
-    console.log(`Router ${HttpMethod.PUT}`, resource, cbs);
-    this._check(HttpMethod.PUT, resource, cbs);
+  public put(path: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.PUT}`, path, cbs);
+    this._check(HttpMethod.PUT, path, cbs);
 
-    this._queue.push([HttpMethod.PUT, resource, cbs]);
+    this._queue.push([HttpMethod.PUT, path, cbs]);
     return this;
   }
 
-  public patch(resource: string, ...cbs: TResponseCallbacks[]) {
-    console.log(`Router ${HttpMethod.PATCH}`, resource, cbs);
-    this._check(HttpMethod.PATCH, resource, cbs);
+  public patch(path: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.PATCH}`, path, cbs);
+    this._check(HttpMethod.PATCH, path, cbs);
 
-    this._queue.push([HttpMethod.PATCH, resource, cbs]);
+    this._queue.push([HttpMethod.PATCH, path, cbs]);
     return this;
   }
 
-  public delete(resource: string, ...cbs: TResponseCallbacks[]) {
-    console.log(`Router ${HttpMethod.DELETE}`, resource, cbs);
-    this._check(HttpMethod.DELETE, resource, cbs);
+  public delete(path: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.DELETE}`, path, cbs);
+    this._check(HttpMethod.DELETE, path, cbs);
 
-    this._queue.push([HttpMethod.DELETE, resource, cbs]);
+    this._queue.push([HttpMethod.DELETE, path, cbs]);
     return this;
   }
 
-  public options(resource: string, ...cbs: TResponseCallbacks[]) {
-    console.log(`Router ${HttpMethod.OPTIONS}`, resource, cbs);
-    this._check(HttpMethod.OPTIONS, resource, cbs);
+  public options(path: string, ...cbs: TResponseCallbacks[]) {
+    console.log(`Router ${HttpMethod.OPTIONS}`, path, cbs);
+    this._check(HttpMethod.OPTIONS, path, cbs);
 
-    this._queue.push([HttpMethod.OPTIONS, resource, cbs]);
+    this._queue.push([HttpMethod.OPTIONS, path, cbs]);
     return this;
   }
 
@@ -177,29 +222,41 @@ export default class Router {
 
   public async handle() {
     if (!this._queue.length)
-      throw new NotFound('Requested resource is not available', 'Router');
+      throw new NotFound('Requested path is not available', 'Router');
 
     // could use find, but we want to check wrong Router setup
     const session = this._queue.filter((q: any) => {
-      const [httpMethod, resource] = q;
+      const [httpMethod, path] = q;
 
-      return (
-        this.request?.httpMethod === httpMethod &&
-        this.request?.resource === resource
-      );
+      if (this.request?.httpMethod !== httpMethod) return false;
+
+      return this._matchRoute(path, this.request?.path);
     });
 
     if (!session?.length)
-      throw new NotFound('Requested resource is not available', 'Router');
+      throw new NotFound('Requested path is not available', 'Router');
 
     if (session.length > 1)
       throw new InternalServerError(
         'Multiple requests found. Please check the Router setup'
       );
-    if (!Array.isArray(session[0][2]) || !session[0][2]?.length)
+
+    const [callbacksSession, pathParametersSession] = [
+      session[0][2],
+      session[0][1],
+    ];
+
+    if (!Array.isArray(callbacksSession) || !callbacksSession?.length)
       throw new InternalServerError('No callbacks found');
 
-    const callbacksSession = session[0][2];
+    const pathParameters = this._getPathParameters(
+      pathParametersSession,
+      this.request?.path
+    );
+
+    this.request.routerFlow = {
+      pathParameters,
+    };
 
     if (this._beforeCb) {
       await this._beforeCb(this.request, this.response, this.sessionStorage);

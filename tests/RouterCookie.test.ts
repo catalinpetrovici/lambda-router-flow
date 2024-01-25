@@ -34,7 +34,7 @@ describe('Router', () => {
 
     const event = {
       httpMethod: 'GET',
-      resource: '/users',
+      path: '/users',
       headers: {
         origin: 'http://localhost:4173',
       },
@@ -46,8 +46,6 @@ describe('Router', () => {
 
       const response = await router.handle();
       if (!response) return expect(true).toBe(false);
-
-      console.log('### response', response);
 
       expect(response).toHaveProperty('statusCode');
       expect(response).toHaveProperty('body');
@@ -61,7 +59,6 @@ describe('Router', () => {
 
       return response;
     } catch (error: any) {
-      console.log('error', error);
       expect(true).toBe(false);
       return router.error(error);
     }
