@@ -1,6 +1,6 @@
 {
   "name": "lambda-router-flow",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "LambdaRouterFlow is a simple router for AWS Lambda.",
   "main": "./dist/lambda-router-flow.cjs",
   "module": "./dist/lambda-router-flow.js",

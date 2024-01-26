@@ -18,9 +18,10 @@ export default class Router {
     cors: false,
   };
 
-  constructor(event: TEvent, headers: THeaders = {}, options?: TOptions) {
+  constructor(event: TEvent, h: THeaders = {}, options?: TOptions) {
     this.request = event;
 
+    let headers = { ...h };
     if (options?.cors) {
       const origin = event?.headers?.Origin || event?.headers?.origin;
       this._cors(origin, headers);
